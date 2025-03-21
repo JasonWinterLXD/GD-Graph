@@ -1,141 +1,71 @@
-# from py2neo import Graph
 from neo4j import GraphDatabase
 
-# class AnswerSearcher:
-#     def __init__(self):#调用数据库进行查询
-#         # self.g = Graph("http://localhost:7474", username="neo4j", password="wang1985")#老版本neo4j
-#         self.g = Graph("http://localhost:7474", auth=("neo4j", "12345678"))#输入自己修改的用户名，密码
-#         self.num_limit = 20#最多显示字符数量
 
-class AnswerSearcher:
+class Answer:
     def __init__(self):
+        """初始化数据库连接"""
         self.driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "12345678"))
         self.num_limit = 20
 
-
-    '''执行cypher查询，并返回相应结果'''
     def search_main(self, sqls):
+        """执行Cypher查询并返回答案"""
         final_answers = []
-        for sql_ in sqls:
-            question_type = sql_['question_type']#sql_里面的关键字
-            queries = sql_['sql']
-            answers = []
-            # for query in queries:
-            #     ress = self.g.run(query).data()#运行图数据库
-            #     answers += ress
-            # final_answer = self.answer_prettify(question_type, answers)#调用回复模板函数
-            # if final_answer:
-            #     final_answers.append(final_answer)
-
-            with self.driver.session() as session:  # 创建会话
-                for query in queries:
-                    ress = session.run(query).data()  # 在会话中运行查询
-                    answers += ress
-            final_answer = self.answer_prettify(question_type, answers)
-            if final_answer:
-                final_answers.append(final_answer)
+        with self.driver.session() as session:
+            for sql_ in sqls:
+                question_type = sql_['question_type']
+                answers = [item for query in sql_['sql'] for item in session.run(query).data()]
+                final_answer = self.answer_prettify(question_type, answers)
+                if final_answer:
+                    final_answers.append(final_answer)
         return final_answers
 
-    '''根据对应的qustion_type，调用相应的回复模板'''
     def answer_prettify(self, question_type, answers):
-        final_answer = []
+        """根据问题类型格式化答案"""
         if not answers:
             return ''
-        if question_type == 'disease_symptom':
-            desc = [i['n.name'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}的症状包括：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
 
-        elif question_type == 'symptom_disease':
-            desc = [i['m.name'] for i in answers]
-            subject = answers[0]['n.name']
-            final_answer = '症状{0}可能染上的疾病有：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
+        formatters = {
+            'disease_symptom': lambda
+                a: f"{a[0]['m.name']}的症状包括：{';'.join(list(set(i['n.name'] for i in a))[:self.num_limit])}",
+            'symptom_disease': lambda
+                a: f"症状{a[0]['n.name']}可能染上的疾病有：{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}",
+            'disease_cause': lambda
+                a: f"{a[0]['m.name']}可能的成因有：{';'.join(list(set(i['m.cause'] for i in a))[:self.num_limit])}",
+            'disease_prevent': lambda
+                a: f"{a[0]['m.name']}的预防措施包括：{';'.join(list(set(i['m.prevent'] for i in a))[:self.num_limit])}",
+            'disease_lasttime': lambda
+                a: f"{a[0]['m.name']}治疗可能持续的周期为：{';'.join(list(set(i['m.cure_lasttime'] for i in a))[:self.num_limit])}",
+            'disease_cureway': lambda
+                a: f"{a[0]['m.name']}可以尝试如下治疗：{';'.join(list(set(';'.join(i['m.cure_way']) for i in a))[:self.num_limit])}",
+            'disease_cureprob': lambda
+                a: f"{a[0]['m.name']}治愈的概率为（仅供参考）：{';'.join(list(set(i['m.cured_prob'] for i in a))[:self.num_limit])}",
+            'disease_easyget': lambda
+                a: f"{a[0]['m.name']}的易感人群包括：{';'.join(list(set(i['m.easy_get'] for i in a))[:self.num_limit])}",
+            'disease_desc': lambda
+                a: f"{a[0]['m.name']}，熟悉一下：{';'.join(list(set(i['m.desc'] for i in a))[:self.num_limit])}",
+            'disease_acompany': lambda
+                a: f"{a[0]['m.name']}的并发症包括：{';'.join(list(set(i['n.name'] for i in a if i['n.name'] != a[0]['m.name']) | set(i['m.name'] for i in a if i['m.name'] != a[0]['m.name']))[:self.num_limit])}",
+            'disease_not_food': lambda
+                a: f"{a[0]['m.name']}忌食的食物包括有：{';'.join(list(set(i['n.name'] for i in a))[:self.num_limit])}",
+            'disease_do_food': lambda
+                a: f"{a[0]['m.name']}宜食的食物包括有：{';'.join(list(set(i['n.name'] for i in a if i['r.name'] == '宜吃'))[:self.num_limit])}\n推荐食谱包括有：{';'.join(list(set(i['n.name'] for i in a if i['r.name'] == '推荐食谱'))[:self.num_limit])}",
+            'food_not_disease': lambda
+                a: f"患有{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}的人最好不要吃{a[0]['n.name']}",
+            'food_do_disease': lambda
+                a: f"患有{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}的人建议多试试{a[0]['n.name']}",
+            'disease_drug': lambda
+                a: f"{a[0]['m.name']}通常的使用的药品包括：{';'.join(list(set(i['n.name'] for i in a))[:self.num_limit])}",
+            'drug_disease': lambda
+                a: f"{a[0]['n.name']}主治的疾病有{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}，可以试试",
+            'disease_check': lambda
+                a: f"{a[0]['m.name']}通常可以通过以下方式检查出来：{';'.join(list(set(i['n.name'] for i in a))[:self.num_limit])}",
+            'check_disease': lambda
+                a: f"通常可以通过{a[0]['n.name']}检查出来的疾病有{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}"
+        }
 
-        elif question_type == 'disease_cause':
-            desc = [i['m.cause'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}可能的成因有：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_prevent':
-            desc = [i['m.prevent'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}的预防措施包括：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_lasttime':
-            desc = [i['m.cure_lasttime'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}治疗可能持续的周期为：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_cureway':
-            desc = [';'.join(i['m.cure_way']) for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}可以尝试如下治疗：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_cureprob':
-            desc = [i['m.cured_prob'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}治愈的概率为（仅供参考）：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_easyget':
-            desc = [i['m.easy_get'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}的易感人群包括：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_desc':
-            desc = [i['m.desc'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0},熟悉一下：{1}'.format(subject,  '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_acompany':
-            desc1 = [i['n.name'] for i in answers]
-            desc2 = [i['m.name'] for i in answers]
-            subject = answers[0]['m.name']
-            desc = [i for i in desc1 + desc2 if i != subject]
-            final_answer = '{0}的症状包括：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_not_food':
-            desc = [i['n.name'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}忌食的食物包括有：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_do_food':
-            do_desc = [i['n.name'] for i in answers if i['r.name'] == '宜吃']
-            recommand_desc = [i['n.name'] for i in answers if i['r.name'] == '推荐食谱']
-            subject = answers[0]['m.name']
-            final_answer = '{0}宜食的食物包括有：{1}\n推荐食谱包括有：{2}'.format(subject, ';'.join(list(set(do_desc))[:self.num_limit]), ';'.join(list(set(recommand_desc))[:self.num_limit]))
-
-        elif question_type == 'food_not_disease':
-            desc = [i['m.name'] for i in answers]
-            subject = answers[0]['n.name']
-            final_answer = '患有{0}的人最好不要吃{1}'.format('；'.join(list(set(desc))[:self.num_limit]), subject)
-
-        elif question_type == 'food_do_disease':
-            desc = [i['m.name'] for i in answers]
-            subject = answers[0]['n.name']
-            final_answer = '患有{0}的人建议多试试{1}'.format('；'.join(list(set(desc))[:self.num_limit]), subject)
-
-        elif question_type == 'disease_drug':
-            desc = [i['n.name'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}通常的使用的药品包括：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'drug_disease':
-            desc = [i['m.name'] for i in answers]
-            subject = answers[0]['n.name']
-            final_answer = '{0}主治的疾病有{1},可以试试'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'disease_check':
-            desc = [i['n.name'] for i in answers]
-            subject = answers[0]['m.name']
-            final_answer = '{0}通常可以通过以下方式检查出来：{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        elif question_type == 'check_disease':
-            desc = [i['m.name'] for i in answers]
-            subject = answers[0]['n.name']
-            final_answer = '通常可以通过{0}检查出来的疾病有{1}'.format(subject, '；'.join(list(set(desc))[:self.num_limit]))
-
-        return final_answer
+        formatter = formatters.get(question_type)
+        return formatter(answers) if formatter else ''
 
 
 if __name__ == '__main__':
-    searcher = AnswerSearcher()
+    answer = Answer()
