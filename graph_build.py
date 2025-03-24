@@ -14,12 +14,12 @@ class MedicalGraph:
         """读取JSON文件并提取节点和关系数据"""
         # 定义节点类型列表
         checks, departments, diseases, drugs = [], [], [], []
-        foods, producers, symptoms, disease_infos = [], [], [], []
+        foods, producers, symptoms, disease_infos, chinese = [], [], [], [], []
         # 定义关系类型列表
         rels_department, rels_noteat, rels_doeat = [], [], []
         rels_recommandeat, rels_commonddrug, rels_recommanddrug = [], [], []
         rels_check, rels_drug_producer, rels_symptom = [], [], []
-        rels_acompany, rels_category = [], []
+        rels_acompany, rels_category, rels_chinese = [], [], []
 
         count = 0
         with open(self.data_path) as f:
@@ -39,6 +39,12 @@ class MedicalGraph:
                 if 'symptom' in data_json:
                     symptoms.extend(data_json['symptom'])
                     rels_symptom.extend([[disease, s] for s in data_json['symptom']])
+
+                # 处理中医治疗
+                if 'chinese' in data_json:
+                    chinese.append(data_json['chinese'])
+                    # rels_chinese.append([[disease, t] for t in data_json['chinese']])
+                    rels_chinese.append([disease, data_json['chinese']])
 
                 # 处理并发症
                 if 'acompany' in data_json:
@@ -92,9 +98,9 @@ class MedicalGraph:
 
         # 返回去重后的集合和关系列表
         return (set(drugs), set(foods), set(checks), set(departments), set(producers), 
-                set(symptoms), set(diseases), disease_infos, rels_check, rels_recommandeat, 
+                set(symptoms), set(diseases), set(chinese), disease_infos, rels_check, rels_recommandeat,
                 rels_noteat, rels_doeat, rels_department, rels_commonddrug, rels_drug_producer, 
-                rels_recommanddrug, rels_symptom, rels_acompany, rels_category)
+                rels_recommanddrug, rels_symptom, rels_acompany, rels_category, rels_chinese)
 
     def create_node(self, label, nodes):
         """批量创建节点"""
@@ -117,10 +123,10 @@ class MedicalGraph:
     def create_graphnodes(self):
         """创建所有类型的节点"""
         nodes_data = self.read_nodes()
-        Drugs, Foods, Checks, Departments, Producers, Symptoms, Diseases, disease_infos = nodes_data[:8]
+        Drugs, Foods, Checks, Departments, Producers, Symptoms, Diseases, Chinese, disease_infos = nodes_data[:9]
         self.create_diseases_nodes(disease_infos)
         for label, nodes in [('Drug', Drugs), ('Food', Foods), ('Check', Checks), 
-                           ('Department', Departments), ('Producer', Producers), ('Symptom', Symptoms)]:
+                           ('Department', Departments), ('Producer', Producers), ('Symptom', Symptoms), ('Chinese', Chinese)]:
             self.create_node(label, nodes)
 
     def create_relationship(self, start_label, end_label, edges, rel_type, rel_name):
@@ -137,7 +143,7 @@ class MedicalGraph:
 
     def create_graphrels(self):
         """创建所有关系"""
-        rels_data = self.read_nodes()[8:]
+        rels_data = self.read_nodes()[9:]
         rel_configs = [
             ('Disease', 'Food', rels_data[1], 'recommand_eat', '推荐食谱'),
             ('Disease', 'Food', rels_data[2], 'no_eat', '忌吃'),
@@ -149,7 +155,8 @@ class MedicalGraph:
             ('Disease', 'Check', rels_data[0], 'need_check', '诊断检查'),
             ('Disease', 'Symptom', rels_data[8], 'has_symptom', '症状'),
             ('Disease', 'Disease', rels_data[9], 'acompany_with', '并发症'),
-            ('Disease', 'Department', rels_data[10], 'belongs_to', '所属科室')
+            ('Disease', 'Department', rels_data[10], 'belongs_to', '所属科室'),
+            ('Disease', 'Chinese', rels_data[11], 'chinese_cure', '中医治疗')
         ]
         for config in rel_configs:
             self.create_relationship(*config)

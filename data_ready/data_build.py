@@ -36,7 +36,8 @@ class MedicalGraph:
             '名称': 'name',
             '常用药品' : 'common_drug',
             '治疗费用': 'cost_money',
-            '并发症': 'acompany'
+            '并发症': 'acompany',
+            '中医治疗': 'chinese'
         }
         self.cuter = CutWords()
 
@@ -64,6 +65,8 @@ class MedicalGraph:
             data['成因'] = item['cause_info']
             # 并发症
             data['症状'] = list(set([i for i in item["symptom_info"][0] if i[0] not in self.stop_words]))
+            # 中医治疗
+            data['中医治疗'] = item['chinese']
             for attr in attributes:
                 attr_pair = attr.split('：')
                 if len(attr_pair) == 2:

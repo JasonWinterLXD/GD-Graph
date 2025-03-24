@@ -60,7 +60,11 @@ class Answer:
             'disease_check': lambda
                 a: f"{a[0]['m.name']}通常可以通过以下方式检查出来：{';'.join(list(set(i['n.name'] for i in a))[:self.num_limit])}",
             'check_disease': lambda
-                a: f"通常可以通过{a[0]['n.name']}检查出来的疾病有{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}"
+                a: f"通常可以通过{a[0]['n.name']}检查出来的疾病有{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}",
+            'disease_department': lambda
+                a: f"{a[0]['m.name']}属于{';'.join(list(set(i['n.name'] for i in a))[:self.num_limit])}",
+            'disease_chinese': lambda
+                a: f"{'; '.join(filter(None, {i.get('n.name', '') or i.get('m.chinese', '') for i in a}))}"
         }
 
         formatter = formatters.get(question_type)

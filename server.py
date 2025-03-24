@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from chat_GD import ChatGDGraph
 
 app = Flask(__name__, static_url_path='', static_folder='UI')
 chat_bot = ChatGDGraph()
+CORS(app)
 
 @app.route('/chat', methods=['POST'])
 def chat():

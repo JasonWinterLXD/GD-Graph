@@ -42,6 +42,11 @@ class QuestionAnalyse:
             'disease_not_food': "MATCH (m:Disease)-[r:no_eat]->(n:Food) WHERE m.name = '{0}' RETURN m.name, r.name, n.name",
             'disease_check': "MATCH (m:Disease)-[r:need_check]->(n:Check) WHERE m.name = '{0}' RETURN m.name, r.name, n.name",
             'check_disease': "MATCH (m:Disease)-[r:need_check]->(n:Check) WHERE n.name = '{0}' RETURN m.name, r.name, n.name",
+            'disease_department': "MATCH (m:Disease)-[r:belongs_to]->(n:Department) WHERE m.name = '{0}' RETURN m.name, n.name",
+            'disease_chinese': lambda e: [
+                f"MATCH (m:Disease)-[r:chinese_cure]->(n:Chinese) WHERE m.name = '{e}' RETURN m.name, r.name, n.name",
+                f"MATCH (m:Disease) WHERE m.name = '{e}' RETURN m.name, m.chinese"
+            ],
             'drug_disease': lambda e: [
                 f"MATCH (m:Disease)-[r:common_drug]->(n:Drug) WHERE n.name = '{e}' RETURN m.name, r.name, n.name",
                 f"MATCH (m:Disease)-[r:recommand_drug]->(n:Drug) WHERE n.name = '{e}' RETURN m.name, r.name, n.name"

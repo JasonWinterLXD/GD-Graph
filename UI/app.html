@@ -3,31 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>肝豆状核变性智能问答系统</title>
+    <title>WD问答系统 - ChatGPT风格</title>
     <style>
         :root {
-            --primary: #19c37d;
-            --secondary: #715fde;
-            --bg: #0a0a14;
-            --surface: #1a1b26;
-            --text: #e0e0e6;
-            --border: rgba(255,255,255,0.1);
-            --shadow: 0 4px 6px -1px rgba(0,0,0,0.4);
+            --primary-bg: #343541;
+            --user-bg: #19c37d;
+            --bot-bg: #444654;
+            --text-primary: #ececf1;
+            --text-secondary: #8e8ea0;
+            --input-bg: #40414f;
+            --border-color: #4d4d4d;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            line-height: 1.6;
-            min-height: 100vh;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            height: 100vh;
             display: flex;
             flex-direction: column;
         }
@@ -35,264 +33,193 @@
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem;
-            max-width: 768px;
-            margin: 0 auto;
-            width: 100%;
+            padding: 24px 16px 0;
             scroll-behavior: smooth;
         }
 
         .message {
             display: flex;
-            gap: 1rem;
-            margin: 1.5rem 0;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: messageAppear 0.3s ease-out forwards;
-        }
-
-        @keyframes messageAppear {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.user {
-            flex-direction: row-reverse;
+            gap: 24px;
+            padding: 24px 0;
+            margin: 0 auto;
+            max-width: 768px;
         }
 
         .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 3px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            font-weight: 500;
-            box-shadow: var(--shadow);
+            font-weight: 600;
+            background: linear-gradient(135deg, #5436da 0%, #b24592 100%);
         }
 
-        .bot-avatar {
-            background: linear-gradient(135deg, var(--secondary), #5e4ec6);
-            color: white;
-        }
-
-        .user-avatar {
-            background: linear-gradient(135deg, var(--primary), #16a165);
-            color: white;
+        .user .avatar {
+            background: var(--user-bg);
+            border-radius: 50%;
         }
 
         .content {
-            max-width: min(80%, 680px);
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            position: relative;
-            transition: transform 0.2s;
-            box-shadow: var(--shadow);
+            flex: 1;
+            padding-top: 4px;
+            font-size: 16px;
+            line-height: 1.75;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .bot .content {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px 12px 12px 4px;
-        }
-
-        .user .content {
-            background: var(--primary);
-            color: white;
-            border-radius: 12px 12px 4px 12px;
-        }
-
-        .content::after {
-            content: "";
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: inherit;
-            transform: rotate(45deg);
-            top: 14px;
-        }
-
-        .bot .content::after {
-            left: -6px;
-            border-left: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .user .content::after {
-            right: -6px;
-            border-right: 1px solid rgba(0,0,0,0.1);
-            border-top: 1px solid rgba(0,0,0,0.1);
+            padding-right: 40px;
         }
 
         .input-container {
-            padding: 1.5rem;
-            background: var(--bg);
-            border-top: 1px solid var(--border);
+            padding: 24px 16px;
+            background: var(--primary-bg);
+            border-top: 1px solid var(--border-color);
             position: sticky;
             bottom: 0;
-            backdrop-filter: blur(8px);
         }
 
         .input-wrapper {
             max-width: 768px;
             margin: 0 auto;
-            display: flex;
-            gap: 0.75rem;
             position: relative;
         }
 
         input {
-            flex: 1;
-            padding: 0.875rem 1.25rem;
-            border: none;
+            width: 100%;
+            padding: 16px 48px 16px 16px;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.2s;
         }
 
         input:focus {
             outline: none;
-            box-shadow: 0 0 0 2px var(--primary);
+            box-shadow: 0 0 0 2px rgba(25,195,125,0.3);
         }
 
-        button {
-            padding: 0.75rem 1.5rem;
-            background: var(--primary);
+        button.send {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
             border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
+            padding: 4px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: var(--shadow);
+            color: var(--text-secondary);
         }
 
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+        button.send:hover {
+            color: var(--user-bg);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
+        /* 加载动画 */
         .typing-indicator {
             display: none;
-            padding: 1rem;
-            background: var(--surface);
+            padding: 16px 24px;
+            background: var(--bot-bg);
             border-radius: 8px;
             width: fit-content;
-            margin: 1rem 0;
-            box-shadow: var(--shadow);
+            margin: 24px auto;
         }
 
-        .dot-flashing {
-            position: relative;
-            width: 6px;
-            height: 6px;
-            border-radius: 3px;
-            background: var(--text);
-            animation: dotFlashing 1s infinite linear;
+        .typing-dot {
+            float: left;
+            width: 8px;
+            height: 8px;
+            margin: 0 4px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: loadingFade 1s infinite;
         }
 
-        .dot-flashing::before,
-        .dot-flashing::after {
-            content: "";
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            border-radius: 3px;
-            background: var(--text);
+        @keyframes loadingFade {
+            0% { opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; }
         }
 
-        .dot-flashing::before {
-            left: -10px;
-            animation: dotFlashing 1s infinite linear;
-            animation-delay: 0.2s;
-        }
-
-        .dot-flashing::after {
-            left: 10px;
-            animation: dotFlashing 1s infinite linear;
-            animation-delay: 0.4s;
-        }
-
-        @keyframes dotFlashing {
-            0% { background: rgba(255,255,255,0.3); }
-            50% { background: var(--text); }
-            100% { background: rgba(255,255,255,0.3); }
-        }
-
-        @media (max-width: 640px) {
-            .chat-container {
-                padding: 1rem;
-            }
-
-            .content {
-                max-width: 90%;
-                padding: 0.875rem;
-            }
-
-            .avatar {
-                width: 36px;
-                height: 36px;
-                font-size: 0.875rem;
-            }
-        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
     </style>
 </head>
 <body>
-    <div class="chat-container" id="chatBox"></div>
+    <div class="chat-container" id="chatContainer">
+        <div class="message bot">
+            <div class="avatar">AI</div>
+            <div class="content">您好！我是肝豆状核变性智能助手，请问有什么可以帮您？</div>
+        </div>
+    </div>
 
     <div class="input-container">
         <div class="input-wrapper">
-            <input type="text" id="userInput" placeholder="输入您的问题..." />
-            <button onclick="sendMessage()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            <input type="text" id="userInput" placeholder="输入消息..." autocomplete="off" />
+            <button class="send" onclick="sendMessage()">
+                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1.2em" width="1.2em">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
                 </svg>
-                发送
             </button>
         </div>
     </div>
 
     <script>
-        const chatBox = document.getElementById('chatBox');
+        const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
 
-        function createTypingIndicator() {
-            const div = document.createElement('div');
-            div.className = 'message bot';
-            div.innerHTML = `
-                <div class="avatar bot-avatar">AI</div>
-                <div class="typing-indicator">
-                    <div class="dot-flashing"></div>
-                </div>
-            `;
-            return div;
+        // 添加消息
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = isUser ? '你' : 'AI';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'content';
+            contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+
+            // 滚动到底部
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // 显示加载状态
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'typing-indicator';
+            loadingDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            chatContainer.appendChild(loadingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return loadingDiv;
+        }
+
+        // 发送消息
         async function sendMessage() {
             const question = userInput.value.trim();
             if (!question) return;
 
-            // 添加用户消息
-            addMessage(question, true);
             userInput.value = '';
+            addMessage(question, true);
 
-            // 显示输入等待
-            const typing = createTypingIndicator();
-            chatBox.appendChild(typing);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            const loading = showLoading();
 
             try {
                 const response = await fetch('http://localhost:5000/chat', {
@@ -302,36 +229,13 @@
                 });
 
                 const data = await response.json();
-                typing.remove();
-                addMessage(data.answer || '没能找到答案', false);
+                loading.remove();
+                addMessage(data.answer || '暂时无法回答此问题', false);
             } catch (error) {
                 console.error('请求失败:', error);
-                typing.remove();
-                addMessage('抱歉，暂时无法处理您的请求', false);
+                loading.remove();
+                addMessage('服务暂时不可用，请稍后再试', false);
             }
-        }
-
-        function addMessage(content, isUser) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-
-            const avatar = document.createElement('div');
-            avatar.className = `avatar ${isUser ? 'user-avatar' : 'bot-avatar'}`;
-            avatar.textContent = isUser ? '我' : 'AI';
-
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'content';
-            contentDiv.innerHTML = content.replace(/\n/g, '<br>');
-
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(contentDiv);
-            chatBox.appendChild(messageDiv);
-
-            // 自动滚动
-            chatBox.scrollTo({
-                top: chatBox.scrollHeight,
-                behavior: 'smooth'
-            });
         }
 
         // 回车发送
@@ -341,11 +245,6 @@
                 sendMessage();
             }
         });
-
-        // 初始问候
-        setTimeout(() => {
-            addMessage('您好！我是肝豆状核变性智能助手，请问有什么可以帮您？', false);
-        }, 500);
     </script>
 </body>
 </html>

@@ -18,17 +18,19 @@ class QuestionClassify:
         # 定义疑问词
         self.qwds = {
             'symptom': ['症状', '表征', '现象', '症候', '表现'],
-            'cause': ['原因', '成因', '为什么', '怎么会', '怎样才', '咋样才', '怎样会', '如何会', '为啥', '为何'],
+            'cause': ['原因', '成因', '为什么', '怎么会', '怎样才', '咋样才', '怎样会', '如何会', '为啥', '为何', '病因'],
             'acompany': ['并发症', '并发', '一起发生', '一并发生', '一起出现', '一并出现'],
             'food': ['饮食', '饮用', '吃', '食', '伙食', '膳食', '喝', '菜', '忌口', '补品'],
             'drug': ['药', '药品', '用药', '胶囊', '口服液', '炎片'],
             'prevent': ['预防', '防范', '抵制', '抵御', '防止', '躲避', '逃避', '避开'],
             'lasttime': ['周期', '多久', '多长时间', '多少时间', '几天', '几年'],
-            'cureway': ['怎么治疗', '如何医治', '怎么医治', '怎么治', '怎么办'],
+            'cureway': ['怎么治疗', '如何医治', '怎么医治', '怎么治', '怎么办', '治疗方式', '治疗', '医疗方式', '医治方式', '如何治疗'],
             'cureprob': ['多大概率能治好', '治好希望大么', '几率', '比例', '可能性'],
             'easyget': ['易感人群', '容易感染', '易发人群', '什么人', '哪些人'],
             'check': ['检查', '检查项目', '查出', '测出', '试出'],
-            'cure': ['治疗什么', '治啥', '有什么用', '有何用', '用途']
+            'cure': ['治疗什么', '治啥', '有什么用', '有何用', '用途'],
+            'department': ['科室', '哪个科室', '什么科室', '哪个科', '什么科'],
+            'chinese':['中医', '中医怎么治', '中医如何治', '中医如何治疗', '中医如何治愈', '中医如何医治', '中医怎么医治']
         }
         # print('分类器初始化完成')
 
@@ -76,7 +78,9 @@ class QuestionClassify:
             (self.qwds['lasttime'], 'disease', 'disease_lasttime'),
             (self.qwds['cureway'], 'disease', 'disease_cureway'),
             (self.qwds['cureprob'], 'disease', 'disease_cureprob'),
-            (self.qwds['easyget'], 'disease', 'disease_easyget')
+            (self.qwds['easyget'], 'disease', 'disease_easyget'),
+            (self.qwds['department'], 'disease', 'disease_department'),
+            (self.qwds['chinese'], 'disease', 'disease_chinese')
         ]
 
         for qwds, type_, qt in rules:
