@@ -1,11 +1,62 @@
 from neo4j import GraphDatabase
-
+import requests
+import json
 
 class Answer:
     def __init__(self):
         """初始化数据库连接"""
         self.driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "12345678"))
         self.num_limit = 20
+        # DeepSeek配置
+        self.ds_api_key = "sk-be6cdfdb47b94ba5b0a791ed2f207327"
+        self.ds_api_url = "https://api.deepseek.com/v1/chat/completions"
+
+    def _deepseek_process(self, text):
+        """调用DeepSeek API优化回答"""
+        headers = {
+            "Authorization": f"Bearer {self.ds_api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "messages": [
+                {"role": "system",
+                 "content": "你是一个医疗问答优化助手，请将以下关于肝豆状核变性的回答转化为更人性化的表达，保持信息准确性"},
+                {"role": "user", "content": text}
+            ],
+            "model": "deepseek-chat",
+            "temperature": 0.3
+        }
+
+        # 增加重试机制和超时时间
+        for attempt in range(3):  # 最多重试3次
+            try:
+                response = requests.post(
+                    self.ds_api_url,
+                    headers=headers,
+                    json=payload,
+                    timeout=15  # 延长超时到15秒
+                )
+                if response.status_code == 200:
+                    return response.json()['choices'][0]['message']['content']
+                elif response.status_code >= 500:
+                    print(f"服务器错误，正在重试... ({attempt + 1}/3)")
+                    continue
+                return text
+            except requests.exceptions.Timeout:
+                print(f"请求超时，正在重试... ({attempt + 1}/3)")
+            except Exception as e:
+                print(f"API错误: {str(e)}")
+                break
+        return f"[优化失败] {text}"  # 明确标注失败状态
+
+        # try:
+        #     response = requests.post(self.ds_api_url, headers=headers, json=payload, timeout=10)
+        #     if response.status_code == 200:
+        #         return response.json()['choices'][0]['message']['content']
+        #     return text  # API调用失败时返回原答案
+        # except Exception as e:
+        #     print(f"DeepSeek API Error: {e}")
+        #     return text
 
     def search_main(self, sqls):
         """执行Cypher查询并返回答案"""
@@ -14,8 +65,10 @@ class Answer:
             for sql_ in sqls:
                 question_type = sql_['question_type']
                 answers = [item for query in sql_['sql'] for item in session.run(query).data()]
-                final_answer = self.answer_prettify(question_type, answers)
-                if final_answer:
+                raw_answer = self.answer_prettify(question_type, answers)
+                if raw_answer:
+                    # 调用DeepSeek优化回答
+                    final_answer = self._deepseek_process(raw_answer)
                     final_answers.append(final_answer)
         return final_answers
 
