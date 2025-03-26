@@ -1,0 +1,26 @@
+<!-- UI/components/chat.html -->
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">肝豆状核变性智能问答</h5>
+            </div>
+            <div class="card-body">
+                <div id="chat-history" class="chat-history mb-3"></div>
+                <div class="input-group">
+                    <textarea
+                            id="question-input"
+                            class="form-control"
+                            rows="3"
+                            placeholder="请输入肝豆状核变性问题..."
+                            style="resize: none;"
+                    ></textarea>
+                    <button class="btn btn-primary" onclick="submitQuestion()">
+                        <i class="bi bi-send"></i> 发送
+                    </button>
+                </div>
+                <small class="text-muted mt-1 d-block">提示：使用 Enter 发送，Shift + Enter 换行</small>
+            </div>
+        </div>
+    </div>
+</div>

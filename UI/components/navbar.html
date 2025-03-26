@@ -1,0 +1,14 @@
+<!-- UI/components/navbar.html -->
+<div class="container-fluid">
+    <a class="navbar-brand" href="#">肝豆状核变性医疗问答</a>
+    <div class="d-flex">
+        <div id="auth-buttons">
+            <a href="#" class="btn btn-light me-2" onclick="showModal('login')">登录</a>
+            <a href="#" class="btn btn-outline-light" onclick="showModal('register')">注册</a>
+        </div>
+        <div id="user-info" class="d-none">
+            <span class="text-white me-3">欢迎，<span id="username-display"></span></span>
+            <button class="btn btn-danger" onclick="logout()">登出</button>
+        </div>
+    </div>
+</div>
