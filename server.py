@@ -23,7 +23,11 @@ app.config.update(
 )
 # 初始化问答机器人
 chat_bot = ChatGDGraph()
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True,
+resources = {r"/*": {"origins": "*"}},  # 允许所有来源
+allow_headers = ["Content-Type", "Authorization"],
+methods = ["GET", "POST", "PUT", "DELETE"]
+)
 
 
 # 用户会话管理
