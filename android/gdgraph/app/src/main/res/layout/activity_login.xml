@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_gray"
-    android:padding="24dp">
+    android:padding="32dp">
 
     <!-- 标题 -->
     <TextView
@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:text="用户登录"
         android:textColor="@color/primary_text"
-        android:textSize="24sp"
+        android:textSize="26sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -28,10 +28,11 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="40dp"
         app:boxStrokeColor="@color/primary_color"
         app:endIconMode="clear_text"
-        app:hintEnabled="false"
+        app:hintEnabled="true"
+        android:hint="用户名"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titleText">
@@ -40,8 +41,7 @@
             android:id="@+id/usernameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:hint="用户名"
+            android:minHeight="52dp"
             android:inputType="textCapWords"
             android:textColor="@color/primary_text"
             android:textColorHint="@color/secondary_text" />
@@ -56,7 +56,8 @@
         android:layout_marginTop="16dp"
         app:boxStrokeColor="@color/primary_color"
         app:endIconMode="password_toggle"
-        app:hintEnabled="false"
+        app:hintEnabled="true"
+        android:hint="密码"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/usernameLayout">
@@ -65,8 +66,7 @@
             android:id="@+id/passwordEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:hint="密码"
+            android:minHeight="52dp"
             android:inputType="textPassword"
             android:textColor="@color/primary_text"
             android:textColorHint="@color/secondary_text" />
@@ -77,19 +77,17 @@
         android:id="@+id/loginButton"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="40dp"
         android:text="立即登录"
         android:textAllCaps="false"
-        android:textSize="16sp"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif-medium"
         app:backgroundTint="@color/primary_color"
-        app:cornerRadius="8dp"
-        app:iconGravity="end"
-        app:iconPadding="8dp"
-        app:iconTint="@android:color/white"
+        app:cornerRadius="12dp"
+        app:rippleColor="@color/primary_dark"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/passwordLayout"
-        app:rippleColor="@color/primary_dark" />
+        app:layout_constraintTop_toBottomOf="@id/passwordLayout" />
 
     <!-- 注册链接 -->
     <TextView
@@ -99,9 +97,8 @@
         android:layout_marginTop="24dp"
         android:text="没有账号？立即注册"
         android:textColor="@color/primary_color"
-        android:textSize="14sp"
-        android:drawablePadding="8dp"
-        app:drawableTint="@color/primary_color"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/loginButton" />

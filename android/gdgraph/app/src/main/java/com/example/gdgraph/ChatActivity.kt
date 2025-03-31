@@ -36,7 +36,7 @@ class ChatActivity : AppCompatActivity() {
             val question = binding.inputEditText.text.toString().trim()
             if (question.isNotEmpty()) {
                 addMessage(question, "user")
-                binding.inputEditText.text.clear()
+                binding.inputEditText.text?.clear()
                 sendQuestion(question)
             }
         }
@@ -60,12 +60,27 @@ class ChatActivity : AppCompatActivity() {
                     val answer = response.body()?.answer ?: "未能获取答案"
                     addMessage(answer, "bot")
                 } else {
-                    addMessage("获取答案失败", "bot")
+                    val errorMessage = when (response.code()) {
+                        401 -> "登录已过期，请重新登录"
+                        500 -> "服务器内部错误，请稍后重试"
+                        else -> "获取答案失败，错误码: ${response.code()}"
+                    }
+                    addMessage(errorMessage, "bot")
+                    if (response.code() == 401) {
+                        startActivity(Intent(this@ChatActivity, LoginActivity::class.java))
+                        finish()
+                    }
                 }
             }
 
             override fun onFailure(call: Call<AnswerResponse>, t: Throwable) {
-                addMessage("网络错误", "bot")
+                val errorMessage = when {
+                    t is java.net.SocketTimeoutException -> "请求超时，请稍后重试"
+                    t is java.net.UnknownHostException -> "无法连接到服务器，请检查网络"
+                    else -> "网络错误: ${t.message}"
+                }
+                addMessage(errorMessage, "bot")
+                android.util.Log.e("ChatActivity", "Network error", t)
             }
         })
     }
@@ -73,12 +88,16 @@ class ChatActivity : AppCompatActivity() {
     private fun logout() {
         ApiClient.apiService.logout().enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
-                startActivity(Intent(this@ChatActivity, MainActivity::class.java))
-                finish()
+                if (response.isSuccessful) {
+                    startActivity(Intent(this@ChatActivity, MainActivity::class.java))
+                    finish()
+                } else {
+                    Toast.makeText(this@ChatActivity, "登出失败，错误码: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
-                Toast.makeText(this@ChatActivity, "登出失败", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, "登出失败: 网络错误", Toast.LENGTH_SHORT).show()
             }
         })
     }
