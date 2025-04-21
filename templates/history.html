@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}历史记录 - 肝豆状核变性智能问答系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .history-container {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        margin-top: 1rem;
+        overflow: hidden;
+    }
+    
+    .history-header {
+        background: linear-gradient(to right, var(--primary-color), #5c7cfa);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .history-header h3 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .history-icon {
+        position: absolute;
+        top: 1.5rem;
+        left: 1.5rem;
+        font-size: 1.5rem;
+    }
+    
+    .history-list {
+        padding: 1.5rem;
+    }
+    
+    .history-item {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        position: relative;
+    }
+    
+    .history-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .history-question {
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .history-question-icon {
+        background-color: var(--primary-color);
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .history-answer {
+        padding-left: 2.5rem;
+        color: var(--dark-color);
+        line-height: 1.6;
+    }
+    
+    .history-time {
+        font-size: 0.75rem;
+        color: #90a4ae;
+        margin-top: 0.75rem;
+        padding-left: 2.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .time-icon {
+        margin-right: 0.35rem;
+    }
+    
+    .empty-history {
+        padding: 3rem;
+        text-align: center;
+        color: var(--secondary-color);
+    }
+    
+    .empty-history-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #cfd8dc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <div class="history-header">
+        <i class="fas fa-history history-icon"></i>
+        <h3>对话历史记录</h3>
+    </div>
+    
+    <div class="history-list">
+        {% if history %}
+            {% for item in history %}
+            <div class="history-item">
+                <div class="history-question">
+                    <div class="history-question-icon">
+                        <i class="fas fa-question"></i>
+                    </div>
+                    <div>{{ item.question }}</div>
+                </div>
+                <div class="history-answer">{{ item.answer }}</div>
+                <div class="history-time">
+                    <i class="fas fa-clock time-icon"></i>
+                    {{ item.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-history">
+                <div class="empty-history-icon">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <h4>暂无历史记录</h4>
+                <p>与系统进行对话后，您的问答记录将显示在这里。</p>
+                <a href="{{ url_for('chat') }}" class="btn btn-primary mt-3">
+                    <i class="fas fa-comments me-2"></i>开始对话
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
