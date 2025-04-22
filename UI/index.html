@@ -4,13 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>肝豆状核变性问答系统</title>
+    <title>肝豆状核变性智能问答系统</title>
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1fa7a.png">
 </head>
 <body>
     <!-- 导航栏 -->
-    <nav id="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary"></nav>
+    <nav id="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top"></nav>
 
     <!-- 主内容容器 -->
     <div class="container mt-4" id="main-container"></div>
@@ -18,7 +21,18 @@
     <!-- 加载动画 -->
     <div id="loading" class="loading-overlay">
         <div class="spinner-border text-primary"></div>
+        <div class="ms-3 mt-3 text-primary">正在思考...</div>
     </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-light text-center text-muted py-3 mt-5">
+        <div class="container">
+            <small>
+                <i class="bi bi-heart-pulse text-primary me-1"></i>
+                &copy; 2025 肝豆状核变性智能问答系统 - 提供准确、及时的医疗信息
+            </small>
+        </div>
+    </footer>
 
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>

@@ -1,20 +1,46 @@
 // UI/app.js
 let currentUser = null;
+let chatHistory = [];
 
 // 初始化页面
 $(document).ready(() => {
+    // 检查主题设置
+    initTheme();
+    
     loadComponent('navbar', '#navbar');
     checkLoginStatus();
+
+    // 添加主题切换按钮事件
+    $('body').on('click', '#theme-toggle', toggleTheme);
 });
 
+// 初始化主题设置
+function initTheme() {
+    const isDarkTheme = localStorage.getItem('dark-theme') === 'true';
+    if (isDarkTheme) {
+        $('body').addClass('dark-theme');
+        // 稍后在导航加载后更新图标
+        setTimeout(() => {
+            $('#theme-toggle i').removeClass('bi-moon').addClass('bi-sun');
+        }, 500);
+    }
+}
+
 async function loadComponent(component, target) {
-    const res = await fetch(`components/${component}.html`);
-    $(target).html(await res.text());
+    try {
+        const res = await fetch(`components/${component}.html`);
+        if (!res.ok) throw new Error(`加载组件失败：${res.status}`);
+        $(target).html(await res.text());
+    } catch (error) {
+        console.error('组件加载错误:', error);
+        $(target).html(`<div class="alert alert-danger">组件加载失败</div>`);
+    }
 }
 
 // 登录状态检查
 async function checkLoginStatus() {
     try {
+        showLoading(true);
         const res = await fetch('/chat', {
             method: 'GET',
             credentials: 'include'
@@ -30,6 +56,9 @@ async function checkLoginStatus() {
         }
     } catch (error) {
         console.error('状态检查失败:', error);
+        showError('无法连接到服务器，请检查网络连接');
+    } finally {
+        showLoading(false);
     }
 }
 
@@ -45,18 +74,37 @@ function updateAuthUI() {
     }
 }
 
+// 显示错误信息
+function showError(message) {
+    const alert = $(`
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    $('#main-container').prepend(alert);
+    
+    // 5秒后自动关闭
+    setTimeout(() => {
+        alert.alert('close');
+    }, 5000);
+}
+
 // 显示对话框
 function showModal(type) {
     const isLogin = type === 'login';
     const switchText = isLogin ? '没有账号？立即注册' : '已有账号？立即登录';
     const switchType = isLogin ? 'register' : 'login';
+    const title = isLogin ? '用户登录' : '用户注册';
+    const buttonText = isLogin ? '登 录' : '注 册';
+    const icon = isLogin ? 'box-arrow-in-right' : 'person-plus';
 
     const modal = $(`
         <div class="modal fade">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">${isLogin ? '用户登录' : '用户注册'}</h5>
+                        <h5 class="modal-title"><i class="bi bi-${icon} me-2"></i>${title}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -64,22 +112,34 @@ function showModal(type) {
                             ${!isLogin ? `
                             <div class="mb-3">
                                 <label class="form-label">邮箱</label>
-                                <input type="email" class="form-control" name="email" required>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" name="email" required>
+                                </div>
                             </div>` : ''}
                             <div class="mb-3">
                                 <label class="form-label">用户名</label>
-                                <input type="text" class="form-control" name="username" required>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" name="username" required>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">密码</label>
-                                <input type="password" class="form-control" name="password" required>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                    <input type="password" class="form-control" name="password" id="password-field" required>
+                                    <button class="btn btn-outline-secondary toggle-password" type="button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" name="remember" id="remember">
                                 <label class="form-check-label" for="remember">记住我</label>
                             </div>
                             <button type="submit" class="btn btn-primary w-100 mb-3">
-                                ${isLogin ? '登 录' : '注 册'}
+                                ${buttonText}
                             </button>
                             <div class="text-center">
                                 <a href="#" class="text-decoration-none" 
@@ -95,6 +155,34 @@ function showModal(type) {
     `);
 
     modal.modal('show');
+    
+    // 添加密码切换可见性功能
+    modal.find('.toggle-password').on('click', function() {
+        const passwordField = modal.find('#password-field');
+        const icon = $(this).find('i');
+        
+        if (passwordField.attr('type') === 'password') {
+            passwordField.attr('type', 'text');
+            icon.removeClass('bi-eye').addClass('bi-eye-slash');
+        } else {
+            passwordField.attr('type', 'password');
+            icon.removeClass('bi-eye-slash').addClass('bi-eye');
+        }
+    });
+}
+
+// 切换主题
+function toggleTheme() {
+    $('body').toggleClass('dark-theme');
+    const isDark = $('body').hasClass('dark-theme');
+    localStorage.setItem('dark-theme', isDark);
+    
+    const icon = $('#theme-toggle i');
+    if (isDark) {
+        icon.removeClass('bi-moon').addClass('bi-sun');
+    } else {
+        icon.removeClass('bi-sun').addClass('bi-moon');
+    }
 }
 
 // 新增切换函数
@@ -118,6 +206,7 @@ async function handleAuth(event, type) {
     }
 
     try {
+        showLoading(true);
         const res = await fetch(`/${type}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -133,11 +222,19 @@ async function handleAuth(event, type) {
             showChatInterface();
         } else {
             // 显示后端返回的具体错误信息
-            alert(data.error || `注册失败，状态码：${res.status}`);
+            const errorMsg = $(`
+                <div class="alert alert-danger mt-3">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    ${data.error || `请求失败，状态码：${res.status}`}
+                </div>
+            `);
+            $('#auth-form').append(errorMsg);
         }
     } catch (error) {
         console.error('请求失败:', error);
         alert('网络错误，请检查控制台日志');
+    } finally {
+        showLoading(false);
     }
 }
 
@@ -155,7 +252,52 @@ async function showChatInterface() {
         // Shift+Enter 保持默认换行行为
     });
 
+    // 快速问题选择
+    $('.question-tag').on('click', function() {
+        const question = $(this).text();
+        input.val(question);
+        input.focus();
+    });
+
+    // 加载历史记录
+    loadChatHistory();
+    
     input.focus();
+}
+
+// 选择常见问题
+function selectQuestion(element) {
+    const question = $(element).text();
+    $('#question-input').val(question);
+    $('#question-input').focus();
+}
+
+// 加载聊天历史
+function loadChatHistory() {
+    const savedHistory = localStorage.getItem(`chat_history_${currentUser}`);
+    if (savedHistory) {
+        chatHistory = JSON.parse(savedHistory);
+        chatHistory.forEach(msg => {
+            addMessage(msg.text, msg.type, false);
+        });
+    }
+    
+    // 滚动到底部
+    scrollChatToBottom();
+}
+
+// 保存聊天历史
+function saveChatHistory() {
+    localStorage.setItem(`chat_history_${currentUser}`, JSON.stringify(chatHistory));
+}
+
+// 清空聊天历史
+function clearChatHistory() {
+    if (confirm('确定要清空所有对话记录吗？')) {
+        $('#chat-history').empty();
+        chatHistory = [];
+        saveChatHistory();
+    }
 }
 
 // 提交问题
@@ -176,9 +318,14 @@ async function submitQuestion() {
             credentials: 'include'
         });
 
+        if (!res.ok) {
+            throw new Error(`服务器错误: ${res.status}`);
+        }
+
         const data = await res.json();
         addMessage(data.answer, 'bot');
     } catch (error) {
+        console.error('请求失败:', error);
         addMessage('获取答案失败，请稍后重试', 'bot');
     } finally {
         showLoading(false);
@@ -186,15 +333,41 @@ async function submitQuestion() {
 }
 
 // 添加消息到历史记录
-function addMessage(text, type) {
+function addMessage(text, type, save = true) {
+    const messageTime = new Date().toLocaleTimeString();
+    let formattedText = text;
+    
+    // 处理链接和换行
+    formattedText = formattedText
+        .replace(/https?:\/\/[^\s]+/g, url => `<a href="${url}" target="_blank" class="text-primary">${url}</a>`)
+        .replace(/\n/g, '<br>');
+    
     const message = $(`
         <div class="chat-message ${type}-message">
-            <div class="message-content">${text}</div>
-            <div class="message-time text-muted small mt-1">${new Date().toLocaleTimeString()}</div>
+            <div class="message-content">${formattedText}</div>
+            <div class="message-time text-muted small mt-1">
+                ${type === 'user' ? '<i class="bi bi-person-circle me-1"></i>' : '<i class="bi bi-robot me-1"></i>'}
+                ${messageTime}
+            </div>
         </div>
     `);
+    
     $('#chat-history').append(message);
-    message[0].scrollIntoView();
+    
+    // 保存到历史记录
+    if (save) {
+        chatHistory.push({ text, type, time: messageTime });
+        saveChatHistory();
+    }
+    
+    // 滚动到底部
+    scrollChatToBottom();
+}
+
+// 滚动聊天区域到底部
+function scrollChatToBottom() {
+    const chatHistory = document.getElementById('chat-history');
+    chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
 // 显示/隐藏加载动画
@@ -204,11 +377,19 @@ function showLoading(show) {
 
 // 登出功能
 async function logout() {
-    await fetch('/logout', {
-        method: 'POST',
-        credentials: 'include'
-    });
-    currentUser = null;
-    updateAuthUI();
-    location.reload();
+    try {
+        showLoading(true);
+        await fetch('/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        currentUser = null;
+        updateAuthUI();
+        location.reload();
+    } catch (error) {
+        console.error('登出失败:', error);
+        showError('登出失败，请稍后重试');
+    } finally {
+        showLoading(false);
+    }
 }
