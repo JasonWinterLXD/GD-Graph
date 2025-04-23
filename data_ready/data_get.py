@@ -164,7 +164,6 @@ class CrimeSpider:
     def spider_main(self, disease_name="肝豆状核变性"):
         """
         主爬取方法，协调各模块爬取指定疾病数据并存储到MongoDB
-        注意：当前仍使用循环搜索，建议优化为先获取疾病URL列表
         """
         for page in range(1, 11000):
             try:
