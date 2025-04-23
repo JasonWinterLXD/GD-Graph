@@ -134,6 +134,19 @@ function showModal(type) {
                                     </button>
                                 </div>
                             </div>
+                            ${!isLogin ? `
+                            <div class="mb-3">
+                                <label class="form-label">确认密码</label>
+                                <div class="input-group">
+                                    <span class="input-group-text rounded-start"><i class="bi bi-key-fill"></i></span>
+                                    <input type="password" class="form-control" name="confirmPassword" id="confirm-password-field" required>
+                                    <button class="btn btn-outline-secondary rounded-end toggle-password" type="button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback" id="password-match-error">两次输入的密码不一致</div>
+                            </div>
+                            ` : ''}
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" name="remember" id="remember">
                                 <label class="form-check-label" for="remember">记住我</label>
@@ -158,7 +171,7 @@ function showModal(type) {
     
     // 添加密码切换可见性功能
     modal.find('.toggle-password').on('click', function() {
-        const passwordField = modal.find('#password-field');
+        const passwordField = $(this).closest('.input-group').find('input');
         const icon = $(this).find('i');
         
         if (passwordField.attr('type') === 'password') {
@@ -169,6 +182,39 @@ function showModal(type) {
             icon.removeClass('bi-eye-slash').addClass('bi-eye');
         }
     });
+
+    // 添加密码确认验证
+    if (!isLogin) {
+        const passwordField = modal.find('#password-field');
+        const confirmField = modal.find('#confirm-password-field');
+        const errorFeedback = modal.find('#password-match-error');
+        
+        const validatePasswords = function() {
+            if (passwordField.val() && confirmField.val()) {
+                if (passwordField.val() !== confirmField.val()) {
+                    confirmField.addClass('is-invalid');
+                    errorFeedback.show();
+                    return false;
+                } else {
+                    confirmField.removeClass('is-invalid');
+                    errorFeedback.hide();
+                    return true;
+                }
+            }
+            return false;
+        };
+        
+        passwordField.on('input', validatePasswords);
+        confirmField.on('input', validatePasswords);
+        
+        // 表单提交前验证密码
+        modal.find('#auth-form').on('submit', function(e) {
+            if (!validatePasswords()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+    }
 }
 
 // 切换主题
@@ -242,8 +288,23 @@ async function handleAuth(event, type) {
         remember: formData.get('remember') === 'on'
     };
 
+    // 对注册表单先进行密码匹配验证
     if (type === 'register') {
         payload.email = formData.get('email');
+        
+        const password = formData.get('password');
+        const confirmPassword = formData.get('confirmPassword');
+        
+        if (password !== confirmPassword) {
+            const errorMsg = $(`
+                <div class="alert alert-danger mt-4">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    两次输入的密码不一致
+                </div>
+            `);
+            $('#auth-form').append(errorMsg);
+            return;
+        }
     }
 
     try {
