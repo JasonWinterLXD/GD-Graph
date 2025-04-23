@@ -90,11 +90,15 @@ def login():
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
 
-    if user and check_password_hash(user['password_hash'], password):
-        user_obj = User(user['id'], user['username'])
-        login_user(user_obj, remember=remember)
-        return jsonify({'message': '登录成功', 'user': user['username']})
-    return jsonify({'error': '无效的用户名或密码'}), 401
+    if not user:
+        return jsonify({'error': '用户不存在'}), 401
+    
+    if not check_password_hash(user['password_hash'], password):
+        return jsonify({'error': '密码错误'}), 401
+        
+    user_obj = User(user['id'], user['username'])
+    login_user(user_obj, remember=remember)
+    return jsonify({'message': '登录成功', 'user': user['username']})
 
 
 @app.route('/logout', methods=['POST'])

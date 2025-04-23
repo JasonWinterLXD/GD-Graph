@@ -100,7 +100,7 @@ function showModal(type) {
     const icon = isLogin ? 'box-arrow-in-right' : 'person-plus';
 
     const modal = $(`
-        <div class="modal fade">
+        <div class="modal fade" id="auth-modal">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -113,23 +113,23 @@ function showModal(type) {
                             <div class="mb-3">
                                 <label class="form-label">邮箱</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                    <input type="email" class="form-control" name="email" required>
+                                    <span class="input-group-text rounded-start"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control rounded-end" name="email" required>
                                 </div>
                             </div>` : ''}
                             <div class="mb-3">
                                 <label class="form-label">用户名</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                    <input type="text" class="form-control" name="username" required>
+                                    <span class="input-group-text rounded-start"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control rounded-end" name="username" required>
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">密码</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                    <span class="input-group-text rounded-start"><i class="bi bi-key"></i></span>
                                     <input type="password" class="form-control" name="password" id="password-field" required>
-                                    <button class="btn btn-outline-secondary toggle-password" type="button">
+                                    <button class="btn btn-outline-secondary rounded-end toggle-password" type="button">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
@@ -191,9 +191,50 @@ function switchAuthModal(newType) {
     setTimeout(() => showModal(newType), 300); // 确保动画完成
 }
 
+// 显示通知弹窗
+function showNotification(type, message) {
+    let icon, bgClass;
+    if (type === 'success') {
+        icon = 'check-circle-fill';
+        bgClass = 'bg-success';
+    } else if (type === 'error') {
+        icon = 'exclamation-circle-fill';
+        bgClass = 'bg-danger';
+    } else {
+        icon = 'info-circle-fill';
+        bgClass = 'bg-primary';
+    }
+    
+    const toast = $(`
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+            <div class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-${icon} me-2"></i>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    const toastElement = toast.find('.toast');
+    const bsToast = new bootstrap.Toast(toastElement, {delay: 3000});
+    bsToast.show();
+    
+    // 3秒后移除元素
+    setTimeout(() => {
+        toast.remove();
+    }, 3500);
+}
+
 // 处理认证请求
 async function handleAuth(event, type) {
     event.preventDefault();
+    // 移除之前的错误信息
+    $('#auth-form .alert').remove();
+    
     const formData = new FormData(event.target);
     const payload = {
         username: formData.get('username'),
@@ -220,19 +261,30 @@ async function handleAuth(event, type) {
             updateAuthUI();
             $('.modal').modal('hide');
             showChatInterface();
+            showNotification('success', `${type === 'login' ? '登录' : '注册'}成功，欢迎${currentUser}！`);
         } else {
             // 显示后端返回的具体错误信息
             const errorMsg = $(`
-                <div class="alert alert-danger mt-3">
+                <div class="alert alert-danger mt-4">
                     <i class="bi bi-exclamation-circle me-2"></i>
                     ${data.error || `请求失败，状态码：${res.status}`}
                 </div>
             `);
             $('#auth-form').append(errorMsg);
+            
+            // 添加登录失败通知
+            showNotification('error', data.error || `${type === 'login' ? '登录' : '注册'}失败，请重试`);
         }
     } catch (error) {
         console.error('请求失败:', error);
-        alert('网络错误，请检查控制台日志');
+        const errorMsg = $(`
+            <div class="alert alert-danger mt-4">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                网络错误，请检查网络连接
+            </div>
+        `);
+        $('#auth-form').append(errorMsg);
+        showNotification('error', '网络错误，请检查网络连接');
     } finally {
         showLoading(false);
     }
@@ -385,10 +437,14 @@ async function logout() {
         });
         currentUser = null;
         updateAuthUI();
-        location.reload();
+        showNotification('success', '已成功退出登录');
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
     } catch (error) {
         console.error('登出失败:', error);
         showError('登出失败，请稍后重试');
+        showNotification('error', '登出失败，请稍后重试');
     } finally {
         showLoading(false);
     }
