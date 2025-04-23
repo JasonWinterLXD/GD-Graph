@@ -96,6 +96,31 @@
             android:textColorHint="@color/secondary_text" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- 确认密码输入 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/confirmPasswordLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:boxStrokeColor="@color/primary_color"
+        app:endIconMode="password_toggle"
+        app:hintEnabled="true"
+        android:hint="确认密码"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/passwordLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/confirmPasswordEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="52dp"
+            android:inputType="textPassword"
+            android:textColor="@color/primary_text"
+            android:textColorHint="@color/secondary_text" />
+    </com.google.android.material.textfield.TextInputLayout>
+
     <!-- 注册按钮 -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/registerButton"
@@ -111,7 +136,7 @@
         app:rippleColor="@color/primary_dark"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/passwordLayout" />
+        app:layout_constraintTop_toBottomOf="@id/confirmPasswordLayout" />
 
     <!-- 登录链接 -->
     <TextView

@@ -24,8 +24,15 @@ class RegisterActivity : AppCompatActivity() {
             val username = binding.usernameEditText.text.toString()
             val email = binding.emailEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
-            if (username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
-                register(username, email, password)
+            val confirmPassword = binding.confirmPasswordEditText.text.toString()
+            
+            if (username.isNotEmpty() && email.isNotEmpty() && 
+                password.isNotEmpty() && confirmPassword.isNotEmpty()) {
+                if (password == confirmPassword) {
+                    register(username, email, password)
+                } else {
+                    Toast.makeText(this, "两次输入的密码不一致", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 Toast.makeText(this, "请填写所有字段", Toast.LENGTH_SHORT).show()
             }
