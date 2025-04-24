@@ -127,6 +127,8 @@ class Answer:
                 a: f"{a[0]['m.name']}通常的使用的药品包括：{';'.join(list(set(i['n.name'] for i in a))[:self.num_limit])}",
             'drug_disease': lambda
                 a: f"{a[0]['n.name']}主治的疾病有{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}，可以试试",
+            'drug_producer': lambda
+                a: f"{a[0]['n.name']}主要有{';'.join(list(set(i['m.name'] for i in a))[:self.num_limit])}",
             'disease_check': lambda
                 a: f"{a[0]['m.name']}通常可以通过以下方式检查出来：{';'.join(list(set(i['n.name'] for i in a))[:self.num_limit])}",
             'check_disease': lambda

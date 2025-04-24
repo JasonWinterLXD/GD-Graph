@@ -6,8 +6,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.gdgraph.api.ApiClient
 import com.example.gdgraph.databinding.ActivityLoginBinding
+import com.example.gdgraph.model.ErrorResponse
 import com.example.gdgraph.model.LoginRequest
 import com.example.gdgraph.model.LoginResponse
+import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -45,7 +47,34 @@ class LoginActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    Toast.makeText(this@LoginActivity, "登录失败", Toast.LENGTH_SHORT).show()
+                    // 尝试解析错误信息
+                    try {
+                        val errorBody = response.errorBody()?.string()
+                        if (errorBody != null) {
+                            val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
+                            val errorMessage = errorResponse.message ?: errorResponse.error
+                            
+                            when {
+                                errorMessage?.contains("user not found", ignoreCase = true) == true ||
+                                errorMessage?.contains("username not exist", ignoreCase = true) == true ||
+                                errorMessage?.contains("user does not exist", ignoreCase = true) == true -> {
+                                    Toast.makeText(this@LoginActivity, "用户名不存在", Toast.LENGTH_SHORT).show()
+                                }
+                                errorMessage?.contains("incorrect password", ignoreCase = true) == true ||
+                                errorMessage?.contains("wrong password", ignoreCase = true) == true ||
+                                errorMessage?.contains("invalid password", ignoreCase = true) == true -> {
+                                    Toast.makeText(this@LoginActivity, "密码错误", Toast.LENGTH_SHORT).show()
+                                }
+                                else -> {
+                                    Toast.makeText(this@LoginActivity, "登录失败: $errorMessage", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } else {
+                            Toast.makeText(this@LoginActivity, "登录失败: ${response.code()}", Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(this@LoginActivity, "登录失败", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
 

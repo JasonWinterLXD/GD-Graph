@@ -55,6 +55,7 @@ class QuestionAnalyse:
                 f"MATCH (m:Disease)-[r:common_drug]->(n:Drug) WHERE m.name = '{e}' RETURN m.name, r.name, n.name",
                 f"MATCH (m:Disease)-[r:recommand_drug]->(n:Drug) WHERE m.name = '{e}' RETURN m.name, r.name, n.name"
             ],
+            'drug_producer': "MATCH (m:Producer)-[r:drugs_of]->(n:Drug) WHERE n.name = '{0}' RETURN m.name, r.name, n.name",
             'disease_do_food': lambda e: [
                 f"MATCH (m:Disease)-[r:do_eat]->(n:Food) WHERE m.name = '{e}' RETURN m.name, r.name, n.name",
                 f"MATCH (m:Disease)-[r:recommand_eat]->(n:Food) WHERE m.name = '{e}' RETURN m.name, r.name, n.name"

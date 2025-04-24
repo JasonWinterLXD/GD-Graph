@@ -6,8 +6,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.gdgraph.api.ApiClient
 import com.example.gdgraph.databinding.ActivityRegisterBinding
+import com.example.gdgraph.model.ErrorResponse
 import com.example.gdgraph.model.RegisterRequest
 import com.example.gdgraph.model.RegisterResponse
+import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -52,7 +54,33 @@ class RegisterActivity : AppCompatActivity() {
                     startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
                     finish()
                 } else {
-                    Toast.makeText(this@RegisterActivity, "注册失败", Toast.LENGTH_SHORT).show()
+                    // 尝试解析错误信息
+                    try {
+                        val errorBody = response.errorBody()?.string()
+                        if (errorBody != null) {
+                            val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
+                            val errorMessage = errorResponse.message ?: errorResponse.error
+                            
+                            when {
+                                errorMessage?.contains("username already exists", ignoreCase = true) == true -> {
+                                    Toast.makeText(this@RegisterActivity, "用户名已存在", Toast.LENGTH_SHORT).show()
+                                }
+                                errorMessage?.contains("email already exists", ignoreCase = true) == true -> {
+                                    Toast.makeText(this@RegisterActivity, "邮箱已被注册", Toast.LENGTH_SHORT).show()
+                                }
+                                errorMessage?.contains("already exists", ignoreCase = true) == true -> {
+                                    Toast.makeText(this@RegisterActivity, "用户名或邮箱已被注册", Toast.LENGTH_SHORT).show()
+                                }
+                                else -> {
+                                    Toast.makeText(this@RegisterActivity, "注册失败: $errorMessage", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } else {
+                            Toast.makeText(this@RegisterActivity, "注册失败: ${response.code()}", Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(this@RegisterActivity, "注册失败", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
 
