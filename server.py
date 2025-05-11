@@ -68,8 +68,15 @@ def register():
                     "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
                     (username, email, password_hash)
                 )
+                # 获取新插入用户的ID
+                user_id = cursor.lastrowid
             conn.commit()
-        return jsonify({'message': '注册成功'}), 201
+        
+        # 创建用户对象并登录
+        user_obj = User(user_id, username)
+        login_user(user_obj)
+        
+        return jsonify({'message': '注册成功', 'user': username}), 201
     except pymysql.err.IntegrityError:
         return jsonify({'error': '用户名或邮箱已存在'}), 400
 
