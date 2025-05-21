@@ -9,10 +9,10 @@ class MedicalGraph:
         cur_dir = '/'.join(os.path.abspath(__file__).split('/')[:-1])
         self.db = self.conn['medical']
         self.col = self.db['data']
-        first_words = [i.strip() for i in open(os.path.join(cur_dir, 'first_name.txt'), encoding='utf-8')]
+        # first_words = [i.strip() for i in open(os.path.join(cur_dir, 'first_name.txt'), encoding='utf-8')]
         alphabets = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y', 'z']
         nums = ['1','2','3','4','5','6','7','8','9','0']
-        self.stop_words = first_words + alphabets + nums
+        # self.stop_words = first_words + alphabets + nums
         self.key_dict = {
             '医保疾病' : 'yibao_status',
             "患病比例" : "get_prob",
@@ -64,7 +64,7 @@ class MedicalGraph:
             data['预防措施'] = item['prevent_info']
             data['成因'] = item['cause_info']
             # 并发症
-            data['症状'] = list(set([i for i in item["symptom_info"][0] if i[0] not in self.stop_words]))
+            data['症状'] = list(set([i for i in item["symptom_info"][0]]))
             # 中医治疗
             data['中医治疗'] = item['chinese']
             for attr in attributes:

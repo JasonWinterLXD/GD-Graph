@@ -93,7 +93,7 @@ class CrimeSpider:
             return None
         selector = etree.HTML(html)
         try:
-            symptoms = selector.xpath('//a[@class="gre"]/text()')
+            symptoms = selector.xpath('//span[@Class="db f12 lh240 mb15 "]/a/text()')
             ps = selector.xpath('//p')
             detail = [p.xpath('string(.)').replace('\r', '').replace('\n', '').replace('\xa0', '').replace('   ', '').replace('\t', '')
                       for p in ps]
