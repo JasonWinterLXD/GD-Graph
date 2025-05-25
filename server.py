@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from chat_GD import ChatGDGraph
 import pymysql
 from mysql_db import get_db, User
+from neo4j import GraphDatabase
 
 app = Flask(__name__, static_url_path='', static_folder='UI')
 app.secret_key = 'sk-be6cdfdb47b94ba5b0a791ed2f207327'
@@ -30,6 +31,8 @@ CORS(app,
      methods = ["GET", "POST", "PUT", "DELETE"]
 )
 
+# Neo4j连接
+neo4j_driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "12345678"))
 
 # 用户会话管理
 @login_manager.user_loader
@@ -131,6 +134,100 @@ def chat():
     answer = chat_bot.chat_main(data['question'])
     return jsonify({'answer': answer, 'user': current_user.username})
 
+
+# 图谱可视化API
+@app.route('/api/graph', methods=['GET'])
+@login_required
+def get_graph_data():
+    """获取Neo4j图谱数据用于可视化"""
+    try:
+        # 获取查询参数
+        limit = request.args.get('limit', default=100, type=int)
+        node_type = request.args.get('type', default=None)
+        
+        with neo4j_driver.session() as session:
+            # 基础查询
+            if node_type:
+                # 针对特定类型节点的查询，返回该类型节点的所有关系（包括入边和出边）
+                result = session.run(
+                    f"MATCH (node:{node_type})-[r]->(other) "
+                    f"RETURN node as n, r, other as m "
+                    f"UNION "
+                    f"MATCH (other)-[r]->(node:{node_type}) "
+                    f"RETURN other as n, r, node as m "
+                    f"LIMIT {limit}"
+                )
+            else:
+                # 默认查询所有关系，使用有向关系
+                result = session.run(
+                    f"MATCH (n)-[r]->(m) "
+                    f"RETURN n, r, m LIMIT {limit}"
+                )
+            
+            # 处理结果
+            nodes = []
+            links = []
+            node_ids = set()
+            # 用于去重关系
+            relation_keys = set()
+            
+            for record in result:
+                source = record["n"]
+                target = record["m"]
+                relationship = record["r"]
+                
+                # 添加节点
+                if source.id not in node_ids:
+                    node_ids.add(source.id)
+                    nodes.append({
+                        "id": source.id,
+                        "labels": list(source.labels),
+                        "properties": dict(source),
+                        "name": source.get("name", "未命名")
+                    })
+                
+                if target.id not in node_ids:
+                    node_ids.add(target.id)
+                    nodes.append({
+                        "id": target.id,
+                        "labels": list(target.labels),
+                        "properties": dict(target),
+                        "name": target.get("name", "未命名")
+                    })
+                
+                # 添加关系，确保方向与Neo4j一致并去重
+                # 创建唯一关系键：源节点ID-关系类型-目标节点ID
+                relation_key = f"{source.id}-{relationship.type}-{target.id}"
+                
+                # 只有当这个关系还没有添加过时才添加
+                if relation_key not in relation_keys:
+                    relation_keys.add(relation_key)
+                    links.append({
+                        "source": source.id,
+                        "target": target.id,
+                        "type": relationship.type,
+                        "properties": dict(relationship)
+                    })
+            
+            return jsonify({
+                "nodes": nodes,
+                "links": links
+            })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 获取所有节点类型
+@app.route('/api/graph/types', methods=['GET'])
+@login_required
+def get_node_types():
+    """获取Neo4j中的所有节点类型"""
+    try:
+        with neo4j_driver.session() as session:
+            result = session.run("CALL db.labels()")
+            types = [record["label"] for record in result]
+            return jsonify({"types": types})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/')
 def index():

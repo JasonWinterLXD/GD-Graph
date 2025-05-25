@@ -1,6 +1,7 @@
 // UI/app.js
 let currentUser = null;
 let chatHistory = [];
+let currentPage = 'chat'; // 默认页面
 
 // 初始化页面
 $(document).ready(() => {
@@ -50,7 +51,7 @@ async function checkLoginStatus() {
             const data = await res.json();
             currentUser = data.user;
             updateAuthUI();
-            showChatInterface();
+            loadPage(currentPage);
         } else {
             showModal('login');
         }
@@ -155,7 +156,7 @@ function showModal(type) {
                                 ${buttonText}
                             </button>
                             <div class="text-center">
-                                <a href="#" class="text-decoration-none" 
+                                <a href="#" class="text-decoration-none text-primary" 
                                    onclick="switchAuthModal('${switchType}')">
                                     ${switchText}
                                 </a>
@@ -321,7 +322,7 @@ async function handleAuth(event, type) {
             currentUser = data.user || payload.username;
             updateAuthUI();
             $('.modal').modal('hide');
-            showChatInterface();
+            loadPage(currentPage);
             showNotification('success', `${type === 'login' ? '登录' : '注册'}成功，欢迎${currentUser}！`);
         } else {
             // 显示后端返回的具体错误信息
@@ -351,9 +352,98 @@ async function handleAuth(event, type) {
     }
 }
 
-// 显示聊天界面
-async function showChatInterface() {
-    await loadComponent('chat', '#main-container');
+// 页面加载函数
+async function loadPage(page) {
+    if (!currentUser) {
+        showModal('login');
+        return;
+    }
+    
+    currentPage = page;
+    
+    try {
+        showLoading(true);
+        await loadComponent(page, '#main-container');
+        
+        // 根据页面类型加载相应的脚本
+        if (page === 'chat') {
+            setupChatInterface();
+        } else if (page === 'graph') {
+            // 首先确保vis.js库已加载
+            await loadScript('https://cdn.bootcdn.net/ajax/libs/vis/4.21.0/vis.min.js');
+            
+            // 然后加载图谱相关脚本
+            await loadScript('graph.js');
+            
+            // 重置全局图谱实例变量
+            if (window.graphInstance) {
+                window.graphInstance = null;
+            }
+            
+            // 手动调用图谱初始化函数
+            if (typeof initGraphInterface === 'function') {
+                initGraphInterface();
+            } else {
+                // 如果没有专门的初始化函数，执行基本图谱加载操作
+                $('#node-type-select').off('change').on('change', function() {
+                    const currentNodeType = $(this).val();
+                    if (typeof loadGraphData === 'function') {
+                        loadGraphData();
+                    }
+                });
+                
+                $('#node-limit').off('change').on('change', function() {
+                    if (typeof loadGraphData === 'function') {
+                        loadGraphData();
+                    }
+                });
+                
+                $('#refresh-graph').off('click').on('click', function() {
+                    if (typeof loadGraphData === 'function') {
+                        loadGraphData();
+                    }
+                });
+                
+                // 尝试调用图谱数据加载函数
+                if (typeof loadNodeTypes === 'function' && typeof loadGraphData === 'function') {
+                    setTimeout(() => {
+                        loadNodeTypes();
+                        loadGraphData();
+                    }, 300);
+                }
+            }
+        }
+        
+        // 更新导航栏活动状态
+        $('.nav-link').removeClass('active');
+        $(`.nav-link[onclick="loadPage('${page}')"]`).addClass('active');
+    } catch (error) {
+        console.error(`加载页面 ${page} 失败:`, error);
+        showError(`加载页面失败: ${error.message}`);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// 动态加载脚本
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        // 检查脚本是否已加载
+        if (document.querySelector(`script[src="${src}"]`)) {
+            resolve();
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`加载脚本失败: ${src}`));
+        document.body.appendChild(script);
+    });
+}
+
+// 设置聊天界面
+function setupChatInterface() {
     const input = $('#question-input');
 
     // 新增键盘事件处理
@@ -384,6 +474,11 @@ function selectQuestion(element) {
     $('#question-input').val(question);
     $('#question-input').focus();
 }
+
+// 添加聊天助手面板交互
+$(document).on('click', '#chat-helper .legend-item small', function() {
+    selectQuestion(this);
+});
 
 // 加载聊天历史
 function loadChatHistory() {
@@ -480,7 +575,9 @@ function addMessage(text, type, save = true) {
 // 滚动聊天区域到底部
 function scrollChatToBottom() {
     const chatHistory = document.getElementById('chat-history');
+    if (chatHistory) {
     chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
 }
 
 // 显示/隐藏加载动画
