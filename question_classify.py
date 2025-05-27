@@ -30,7 +30,7 @@ class QuestionClassify:
             'check': ['检查', '检查项目', '查出', '测出', '试出'],
             'cure': ['治疗什么', '治啥', '有什么用', '有何用', '用途'],
             'department': ['科室', '哪个科室', '什么科室', '哪个科', '什么科'],
-            'chinese':['中医', '中医怎么治', '中医如何治', '中医如何治疗', '中医如何治愈', '中医如何医治', '中医怎么医治'],
+            'chinese_medicine':['中医', '中医怎么治', '中医如何治', '中医如何治疗', '中医如何治愈', '中医如何医治', '中医怎么医治'],
             'producer':['厂家', '生产商', '制药厂', '制药公司', '生产厂家', '生产', '谁生产', '哪家公司', '哪个公司']
         }
         # print('分类器初始化完成')
@@ -81,7 +81,7 @@ class QuestionClassify:
             (self.qwds['cureprob'], 'disease', 'disease_cureprob'),
             (self.qwds['easyget'], 'disease', 'disease_easyget'),
             (self.qwds['department'], 'disease', 'disease_department'),
-            (self.qwds['chinese'], 'disease', 'disease_chinese'),
+            (self.qwds['chinese_medicine'], 'disease', 'disease_chinese_medicine'),
             (self.qwds['producer'], 'drug', 'drug_producer')
         ]
 

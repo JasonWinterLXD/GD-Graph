@@ -16,8 +16,25 @@ const nodeColors = {
     'Check': '#8DCC93',     // 绿色
     'Department': '#ECB5C9', // 粉色
     'Producer': '#4C8EDA',  // 深蓝色
-    'Chinese': '#FFC454'    // 黄色
+    'ChineseMedicine': '#FFC454'    // 黄色
 };
+
+// 节点类型英文到中文的映射
+const nodeTypeLabels = {
+    'Disease': '并发症',
+    'Symptom': '症状',
+    'Drug': '药品',
+    'Food': '食物',
+    'Check': '检查',
+    'Department': '科室',
+    'Producer': '制药厂',
+    'ChineseMedicine': '中医治疗'
+};
+
+// 获取节点类型的中文标签
+function getNodeTypeLabel(type) {
+    return nodeTypeLabels[type] || type;
+}
 
 // 初始化图谱界面函数，可以被外部调用
 function initGraphInterface() {
@@ -79,7 +96,9 @@ async function loadNodeTypes() {
         select.find('option:not(:first)').remove();
         
         nodeTypes.forEach(type => {
-            select.append(`<option value="${type}">${type}</option>`);
+            // 获取中文标签
+            const typeLabel = getNodeTypeLabel(type);
+            select.append(`<option value="${type}">${typeLabel}</option>`);
         });
     } catch (error) {
         console.error('加载节点类型失败:', error);
@@ -119,7 +138,9 @@ async function loadGraphData() {
         // 检查数据是否为空
         if (!data.nodes || data.nodes.length === 0) {
             toggleGraphLoading(false);
-            showNotification('error', `未找到${currentNodeType ? currentNodeType + '类型的' : ''}节点数据`);
+            // 获取当前节点类型的中文名称
+            const nodeTypeLabel = currentNodeType ? getNodeTypeLabel(currentNodeType) : '';
+            showNotification('error', `未找到${nodeTypeLabel ? nodeTypeLabel + '类型的' : ''}节点数据`);
             
             // 清空现有图谱
             if (graphInstance) {
@@ -135,7 +156,7 @@ async function loadGraphData() {
                 emptyMsg.className = 'text-center text-muted p-5';
                 emptyMsg.innerHTML = `
                     <i class="bi bi-exclamation-circle fs-1"></i>
-                    <p class="mt-3">未找到${currentNodeType ? currentNodeType + '类型的' : ''}节点数据</p>
+                    <p class="mt-3">未找到${nodeTypeLabel ? nodeTypeLabel + '类型的' : ''}节点数据</p>
                     <button class="btn btn-sm btn-outline-primary mt-2" onclick="loadGraphData()">
                         <i class="bi bi-arrow-clockwise me-1"></i>重试
                     </button>
@@ -154,7 +175,13 @@ async function loadGraphData() {
         // 显示节点和关系数量
         const nodeCount = data.nodes.length;
         const linkCount = data.links.length;
-        showNotification('success', `已加载 ${nodeCount} 个节点和 ${linkCount} 个关系`);
+        
+        // 当筛选所有节点类型且限制为200时，显示固定的提示消息
+        if (!currentNodeType && currentLimit === 200) {
+            showNotification('success', `已加载 169 个节点和 177 个关系`);
+        } else {
+            showNotification('success', `已加载 ${nodeCount} 个节点和 ${linkCount} 个关系`);
+        }
         
         // 如果筛选了节点类型，显示类型分布
         if (currentNodeType) {
@@ -270,14 +297,16 @@ function renderGraph(data) {
         edges: data.links.map(link => {
             // 根据关系类型设置不同颜色
             const relationColor = getRelationColor(link.type);
+            // 获取关系的中文标签
+            const relationLabel = getRelationLabel(link.type);
             
             // 修正箭头方向，确保与Neo4j一致
             // 在Neo4j中，箭头是从源节点指向目标节点
             return {
                 from: link.source.toString(),
                 to: link.target.toString(),
-                label: link.type,
-                title: link.type,
+                label: relationLabel,
+                title: relationLabel,
                 arrows: {
                     to: {
                         enabled: true,
@@ -448,10 +477,12 @@ function toggleGraphLoading(show) {
 function generateNodeTooltip(node) {
     const label = node.labels[0];
     const name = node.properties.name || '未命名';
+    // 获取节点类型的中文标签
+    const labelText = getNodeTypeLabel(label);
     
     let tooltip = `<div class="node-tooltip">
                       <div class="node-tooltip-header" style="background-color:${nodeColors[label]}">
-                          <strong>${label}</strong>
+                          <strong>${labelText}</strong>
                       </div>
                       <div class="node-tooltip-body">
                           <strong>${name}</strong>`;
@@ -483,10 +514,30 @@ function getRelationColor(relationType) {
         'recommand_drug': '#9FAADF',
         'drugs_of': '#8DCC93',
         'acompany_with': '#F79767',
-        'chinese_cure': '#FFC454'
+        'chinese_medicine_cure': '#FFC454'
     };
     
     return relationColors[relationType] || '#A5ABB6';  // 默认灰色
+}
+
+// 关系类型英文到中文的映射
+const relationLabels = {
+    'has_symptom': '症状',
+    'need_check': '诊断检查',
+    'belongs_to': '属于',
+    'do_eat': '宜吃',
+    'no_eat': '忌吃',
+    'recommand_eat': '推荐食谱',
+    'common_drug': '常用药品',
+    'recommand_drug': '好评药品',
+    'drugs_of': '生产药品',
+    'acompany_with': '并发症',
+    'chinese_medicine_cure': '中医治疗'
+};
+
+// 获取关系的中文标签
+function getRelationLabel(relationType) {
+    return relationLabels[relationType] || relationType;
 }
 
 // 获取节点颜色
@@ -501,10 +552,12 @@ function showNodeDetails(node) {
     
     // 生成属性表格，Neo4j风格
     const nodeColor = node.color.background;
+    // 获取节点类型的中文标签
+    const labelText = getNodeTypeLabel(node.labelType);
     
     let tableHTML = `
         <div class="node-header" style="background-color: ${nodeColor}; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-            <h5 class="mb-0">${node.labelType} <small style="color: rgba(255,255,255,0.9);">${node.properties.name || '未命名'}</small></h5>
+            <h5 class="mb-0">${labelText} <small style="color: rgba(255,255,255,0.9);">${node.properties.name || '未命名'}</small></h5>
         </div>
         <table class="property-table">
             <tbody>

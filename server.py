@@ -148,15 +148,26 @@ def get_graph_data():
         with neo4j_driver.session() as session:
             # 基础查询
             if node_type:
-                # 针对特定类型节点的查询，返回该类型节点的所有关系（包括入边和出边）
-                result = session.run(
-                    f"MATCH (node:{node_type})-[r]->(other) "
-                    f"RETURN node as n, r, other as m "
-                    f"UNION "
-                    f"MATCH (other)-[r]->(node:{node_type}) "
-                    f"RETURN other as n, r, node as m "
-                    f"LIMIT {limit}"
-                )
+                # 针对Disease类型特殊处理，只返回并发症关系
+                if node_type == 'Disease':
+                    result = session.run(
+                        f"MATCH (node:Disease)-[r:acompany_with]->(other:Disease) "
+                        f"RETURN node as n, r, other as m "
+                        f"UNION "
+                        f"MATCH (other:Disease)-[r:acompany_with]->(node:Disease) "
+                        f"RETURN other as n, r, node as m "
+                        f"LIMIT {limit}"
+                    )
+                else:
+                    # 其他类型节点的查询，返回该类型节点的所有关系（包括入边和出边）
+                    result = session.run(
+                        f"MATCH (node:{node_type})-[r]->(other) "
+                        f"RETURN node as n, r, other as m "
+                        f"UNION "
+                        f"MATCH (other)-[r]->(node:{node_type}) "
+                        f"RETURN other as n, r, node as m "
+                        f"LIMIT {limit}"
+                    )
             else:
                 # 默认查询所有关系，使用有向关系
                 result = session.run(

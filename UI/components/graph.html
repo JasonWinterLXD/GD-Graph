@@ -19,7 +19,6 @@
                                 <option value="50">50个节点</option>
                                 <option value="100" selected>100个节点</option>
                                 <option value="200">200个节点</option>
-                                <option value="500">500个节点</option>
                             </select>
                         </div>
                         <button class="btn btn-sm btn-primary" id="refresh-graph">
@@ -69,35 +68,35 @@
                         <div class="d-flex flex-wrap">
                             <div class="legend-item me-3 mb-2">
                                 <span class="legend-color" style="background-color: #C990C0;"></span>
-                                <small>疾病 (Disease)</small>
+                                <small>并发症</small>
                             </div>
                             <div class="legend-item me-3 mb-2">
                                 <span class="legend-color" style="background-color: #F79767;"></span>
-                                <small>症状 (Symptom)</small>
+                                <small>症状</small>
                             </div>
                             <div class="legend-item me-3 mb-2">
                                 <span class="legend-color" style="background-color: #57C7E3;"></span>
-                                <small>药品 (Drug)</small>
+                                <small>药品</small>
                             </div>
                             <div class="legend-item me-3 mb-2">
                                 <span class="legend-color" style="background-color: #F16667;"></span>
-                                <small>食物 (Food)</small>
+                                <small>食物</small>
                             </div>
                             <div class="legend-item me-3 mb-2">
                                 <span class="legend-color" style="background-color: #8DCC93;"></span>
-                                <small>检查 (Check)</small>
+                                <small>检查</small>
                             </div>
                             <div class="legend-item me-3 mb-2">
                                 <span class="legend-color" style="background-color: #ECB5C9;"></span>
-                                <small>科室 (Department)</small>
+                                <small>科室</small>
                             </div>
                             <div class="legend-item me-3 mb-2">
                                 <span class="legend-color" style="background-color: #4C8EDA;"></span>
-                                <small>厂商 (Producer)</small>
+                                <small>制药厂</small>
                             </div>
                             <div class="legend-item me-3 mb-2">
                                 <span class="legend-color" style="background-color: #FFC454;"></span>
-                                <small>中医 (Chinese)</small>
+                                <small>中医治疗</small>
                             </div>
                         </div>
                     </div>
@@ -107,6 +106,53 @@
                             图谱中的连线表示实体间的关系，不同颜色代表不同类型的关系。
                             箭头方向表示关系的指向，例如"疾病→症状"表示该疾病具有这些症状。
                         </p>
+                        <!-- 添加关系类型图例 -->
+                        <div class="d-flex flex-wrap mt-3">
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #68BDF6;"></span>
+                                <small>症状</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #6DCE9E;"></span>
+                                <small>诊断检查</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #FF756E;"></span>
+                                <small>属于</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #DE9BF9;"></span>
+                                <small>宜吃</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #FB95AF;"></span>
+                                <small>忌吃</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #FFD86E;"></span>
+                                <small>推荐食谱</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #A5ABB6;"></span>
+                                <small>常用药品</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #9FAADF;"></span>
+                                <small>好评药品</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #8DCC93;"></span>
+                                <small>生产药品</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #F79767;"></span>
+                                <small>并发症</small>
+                            </div>
+                            <div class="legend-item me-3 mb-2">
+                                <span class="legend-color" style="background-color: #FFC454;"></span>
+                                <small>中医治疗</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
